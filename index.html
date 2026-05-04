@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatbot WhatsApp – Compraventa Postigo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #25D366;
+    --green-dark: #128C7E;
+    --green-light: #DCF8C6;
+    --bg: #0a0c0a;
+    --surface: #111411;
+    --chat-bg: #0d1310;
+    --bubble-in: #1a2420;
+    --bubble-out: #005c4b;
+    --text: #e8ede8;
+    --muted: #8696a0;
+    --border: #1e2a1e;
+    --accent: #FFB800;
+    --accent2: #ff6b35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    width: 100%;
+    background: linear-gradient(160deg, #050f07 0%, #0a1a0d 50%, #060e08 100%);
+    padding: 3.5rem 2rem 2.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 350px;
+    background: radial-gradient(ellipse, rgba(37,211,102,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: 'POSTIGO';
+    position: absolute;
+    bottom: -20px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 9rem;
+    letter-spacing: 12px;
+    color: rgba(37,211,102,0.03);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(37,211,102,0.08);
+    border: 1px solid rgba(37,211,102,0.25);
+    border-radius: 50px;
+    padding: 5px 15px;
+    font-size: 0.72rem;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 1.4rem;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: livePulse 1.6s infinite;
+  }
+  @keyframes livePulse {
+    0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(37,211,102,0.4); }
+    50% { opacity:0.7; box-shadow: 0 0 0 5px rgba(37,211,102,0); }
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    letter-spacing: 4px;
+    color: #fff;
+    line-height: 1;
+    position: relative;
+  }
+  .hero h1 .accent { color: var(--green); }
+  .hero p {
+    margin-top: 1rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+    max-width: 480px;
+    margin-left: auto; margin-right: auto;
+    line-height: 1.6;
+  }
+
+  /* ── LAYOUT ── */
+  .demo-wrapper {
+    width: 100%;
+    max-width: 1120px;
+    padding: 2.5rem 1.5rem 3rem;
+    display: grid;
+    grid-template-columns: 1fr 370px;
+    gap: 2.2rem;
+    align-items: start;
+  }
+
+  /* ── INFO PANEL ── */
+  .info-panel { display: flex; flex-direction: column; gap: 1.2rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(37,211,102,0.4), transparent);
+  }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 2.5px;
+    color: var(--green);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+  .info-item {
+    background: var(--chat-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+  }
+  .info-item .label {
+    font-size: 0.68rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .info-item .value {
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .info-item.full { grid-column: 1 / -1; }
+
+  /* Vehicles */
+  .vehicles-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .v-card {
+    background: var(--chat-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: default;
+  }
+  .v-card:hover { border-color: rgba(37,211,102,0.35); transform: translateX(3px); }
+  .v-card-left { flex: 1; min-width: 0; }
+  .v-name { font-weight: 600; font-size: 0.88rem; color: #fff; }
+  .v-detail { font-size: 0.75rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .v-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .v-tag {
+    font-size: 0.67rem;
+    background: rgba(37,211,102,0.08);
+    border: 1px solid rgba(37,211,102,0.18);
+    color: var(--green);
+    border-radius: 50px;
+    padding: 2px 8px;
+    letter-spacing: 0.3px;
+  }
+  .v-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* How it works */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    width: 26px; height: 26px;
+    background: rgba(37,211,102,0.1);
+    border: 1px solid rgba(37,211,102,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--green);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
+  .step-text strong { color: var(--text); }
+
+  /* ── PHONE ── */
+  .chat-panel {
+    position: sticky;
+    top: 20px;
+  }
+
+  .phone-outer {
+    background: linear-gradient(145deg, #1f2820, #141a14);
+    border-radius: 44px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 1px #2a382a,
+      0 0 0 2px #0d130d,
+      0 40px 100px rgba(0,0,0,0.85),
+      0 0 60px rgba(37,211,102,0.06);
+  }
+  .phone-inner {
+    background: var(--chat-bg);
+    border-radius: 36px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 690px;
+    border: 1px solid #1a241a;
+  }
+
+  /* WA Header */
+  .wa-header {
+    background: #1a2820;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #243024;
+    flex-shrink: 0;
+  }
+  .wa-back { color: var(--green); font-size: 1.1rem; cursor: pointer; }
+  .wa-avatar {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--green-dark), var(--green));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .wa-info { flex: 1; }
+  .wa-name { font-weight: 600; font-size: 0.88rem; color: #e9ede9; }
+  .wa-status { font-size: 0.7rem; color: var(--green); margin-top: 1px; }
+  .wa-icons { display: flex; gap: 14px; color: #7a9080; font-size: 1rem; }
+
+  /* Chat wallpaper */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    scroll-behavior: smooth;
+    background-color: var(--chat-bg);
+    background-image:
+      radial-gradient(circle at 20% 80%, rgba(37,211,102,0.025) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(37,211,102,0.02) 0%, transparent 50%);
+  }
+  .messages::-webkit-scrollbar { width: 3px; }
+  .messages::-webkit-scrollbar-thumb { background: #243024; border-radius: 3px; }
+
+  .date-sep {
+    align-self: center;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px 12px;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin: 6px 0;
+    letter-spacing: 0.5px;
+  }
+
+  .msg {
+    max-width: 83%;
+    padding: 8px 11px 6px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    position: relative;
+    animation: msgPop 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes msgPop {
+    from { opacity:0; transform: scale(0.9) translateY(6px); }
+    to { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .msg.in {
+    background: var(--bubble-in);
+    align-self: flex-start;
+    border-top-left-radius: 2px;
+    color: #d8edd8;
+  }
+  .msg.out {
+    background: var(--bubble-out);
+    align-self: flex-end;
+    border-top-right-radius: 2px;
+    color: #e0ede0;
+  }
+  .msg-time {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.38);
+    text-align: right;
+    margin-top: 4px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+  }
+  .msg.out .ticks { color: var(--green); }
+
+  /* Quick replies */
+  .quick-replies {
+    padding: 8px 8px 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    background: #111c12;
+    border-top: 1px solid #1a261a;
+    flex-shrink: 0;
+  }
+  .qr-btn {
+    background: rgba(37,211,102,0.07);
+    border: 1px solid rgba(37,211,102,0.22);
+    color: var(--green);
+    border-radius: 50px;
+    padding: 5px 11px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .qr-btn:hover {
+    background: rgba(37,211,102,0.16);
+    border-color: rgba(37,211,102,0.5);
+    transform: translateY(-1px);
+  }
+  .qr-btn:active { transform: scale(0.96); }
+
+  /* Input */
+  .wa-input {
+    background: #111c12;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border-top: 1px solid #1a261a;
+    flex-shrink: 0;
+  }
+  .wa-input input {
+    flex: 1;
+    background: #1a261a;
+    border: 1px solid #243024;
+    border-radius: 22px;
+    padding: 8px 14px;
+    color: #d8edd8;
+    font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .wa-input input:focus { border-color: rgba(37,211,102,0.4); }
+  .wa-input input::placeholder { color: #4a6050; }
+  .send-btn {
+    width: 38px; height: 38px;
+    background: var(--green-dark);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    transition: background 0.2s, transform 0.15s;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .send-btn:hover { background: var(--green); transform: scale(1.08); }
+  .send-btn:active { transform: scale(0.94); }
+
+  /* Typing */
+  .typing-wrap { display: flex; align-items: center; gap: 5px; }
+  .typing-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px;
+  }
+  .typing-dots span {
+    width: 7px; height: 7px;
+    background: var(--muted);
+    border-radius: 50%;
+    animation: typeDot 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typeDot {
+    0%,80%,100% { transform:scale(0.65); opacity:0.4; }
+    40% { transform:scale(1); opacity:1; }
+  }
+
+  /* Footer */
+  .site-footer {
+    width: 100%;
+    border-top: 1px solid var(--border);
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    line-height: 1.8;
+  }
+  .site-footer a { color: var(--green); text-decoration: none; }
+
+  @media (max-width: 780px) {
+    .demo-wrapper { grid-template-columns: 1fr; }
+    .chat-panel { position: static; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="live-badge"><div class="live-dot"></div>Demo en vivo</div>
+  <h1>Chatbot WhatsApp<br><span class="accent">Compraventa Postigo</span></h1>
+  <p>Asistente inteligente para atender clientes 24/7 — vehículos, precios, horarios, ubicación y más.</p>
+</header>
+
+<div class="demo-wrapper">
+
+  <!-- LEFT: INFO -->
+  <div class="info-panel">
+
+    <div class="card">
+      <div class="card-title">🏢 &nbsp;El negocio</div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">Empresa</div>
+          <div class="value">Compraventa de Vehículos Postigo</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Horario</div>
+          <div class="value">9:00–15:00<br>16:30–20:30</div>
+        </div>
+        <div class="info-item full">
+          <div class="label">Dirección</div>
+          <div class="value">Calle Luengo, junto al matadero municipal — Berlanga, Badajoz</div>
+        </div>
+        <div class="info-item full">
+          <div class="label">Servicios</div>
+          <div class="value">🔧 Reparaciones &nbsp;·&nbsp; 🚗 Compraventa &nbsp;·&nbsp; ✅ Puesta a punto ITV</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🚗 &nbsp;Vehículos en venta</div>
+      <div class="vehicles-list">
+
+        <div class="v-card">
+          <div class="v-card-left">
+            <div class="v-name">Ford Focus Familiar 1.8 Diesel</div>
+            <div class="v-detail">280.000 km · Familiar · Diésel</div>
+            <div class="v-tags">
+              <span class="v-tag">Diésel</span>
+              <span class="v-tag">Familiar</span>
+              <span class="v-tag">280K km</span>
+            </div>
+          </div>
+          <div class="v-price">1.500€</div>
+        </div>
+
+        <div class="v-card">
+          <div class="v-card-left">
+            <div class="v-name">Peugeot 508 2.0 TDI</div>
+            <div class="v-detail">Berlina · Diésel</div>
+            <div class="v-tags">
+              <span class="v-tag">Diésel</span>
+              <span class="v-tag">Berlina</span>
+            </div>
+          </div>
+          <div class="v-price">4.999€</div>
+        </div>
+
+        <div class="v-card">
+          <div class="v-card-left">
+            <div class="v-name">Peugeot 607</div>
+            <div class="v-detail">350.000 km · Cuero calefactable · Embrague nuevo · Mantenimiento reciente</div>
+            <div class="v-tags">
+              <span class="v-tag">Cuero</span>
+              <span class="v-tag">Extras</span>
+              <span class="v-tag">Mant. OK</span>
+              <span class="v-tag">350K km</span>
+            </div>
+          </div>
+          <div class="v-price">1.900€</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚡ &nbsp;Cómo funciona</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">El cliente escribe al <strong>número de WhatsApp Business</strong> del negocio.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">El mensaje llega a una <strong>Netlify Function</strong> (serverless), que mantiene la API key segura.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Claude AI</strong> procesa la pregunta con el contexto completo del negocio.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-text">La respuesta se envía de vuelta al cliente <strong>en segundos</strong>, 24/7.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: PHONE -->
+  <div class="chat-panel">
+    <div class="phone-outer">
+      <div class="phone-inner">
+
+        <div class="wa-header">
+          <div class="wa-back">‹</div>
+          <div class="wa-avatar">🚗</div>
+          <div class="wa-info">
+            <div class="wa-name">Postigo Vehículos</div>
+            <div class="wa-status">● en línea ahora</div>
+          </div>
+          <div class="wa-icons">📞 ⋮</div>
+        </div>
+
+        <div class="messages" id="messages">
+          <div class="date-sep">Hoy</div>
+          <div class="msg in">
+            ¡Hola! 👋 Soy el asistente de <strong>Compraventa Postigo</strong>. Puedo ayudarte con vehículos, precios, servicios, horarios o cómo llegar. ¿En qué te puedo ayudar?
+            <div class="msg-time">
+              <span id="initTime"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-replies" id="quickReplies">
+          <button class="qr-btn" onclick="sendQuick('¿Qué coches tenéis en venta?')">🚗 Vehículos</button>
+          <button class="qr-btn" onclick="sendQuick('¿Cuál es el horario?')">🕐 Horario</button>
+          <button class="qr-btn" onclick="sendQuick('¿Dónde estáis?')">📍 Ubicación</button>
+          <button class="qr-btn" onclick="sendQuick('¿Hacéis reparaciones?')">🔧 Taller</button>
+          <button class="qr-btn" onclick="sendQuick('¿Preparáis coches para pasar la ITV?')">✅ ITV</button>
+        </div>
+
+        <div class="wa-input">
+          <input type="text" id="userInput" placeholder="Escribe un mensaje…"
+            onkeydown="if(event.key==='Enter') sendMessage()">
+          <button class="send-btn" onclick="sendMessage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  Demo de chatbot WhatsApp · Motor <strong>Claude AI</strong> (Anthropic) · Desplegado en
+  <a href="https://netlify.com" target="_blank">Netlify</a><br>
+  Compraventa de Vehículos Postigo · Berlanga, Badajoz
+</footer>
+
+<script>
+  // Set initial time
+  const now = new Date();
+  document.getElementById('initTime').textContent =
+    now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  let history = [];
+
+  function getTime() {
+    const d = new Date();
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
+
+  function appendMsg(html, type) {
+    const box = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg ' + type;
+    const ticks = type === 'out' ? '<span class="ticks">✓✓</span>' : '';
+    div.innerHTML = html + `<div class="msg-time">${getTime()} ${ticks}</div>`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function showTyping() {
+    const box = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg in';
+    div.id = 'typing-indicator';
+    div.innerHTML = '<div class="typing-wrap"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing-indicator');
+    if (t) t.remove();
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    appendMsg(text, 'out');
+    history.push({ role: 'user', content: text });
+    showTyping();
+
+    try {
+      const res = await fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history })
+      });
+      const data = await res.json();
+      const reply = data.content?.[0]?.text || 'Lo siento, no he podido procesar tu mensaje.';
+      removeTyping();
+      appendMsg(reply.replace(/\n/g, '<br>'), 'in');
+      history.push({ role: 'assistant', content: reply });
+    } catch (e) {
+      removeTyping();
+      appendMsg('⚠️ Error de conexión. Por favor, inténtalo de nuevo.', 'in');
+    }
+  }
+
+  function sendQuick(text) {
+    document.getElementById('userInput').value = text;
+    sendMessage();
+  }
+</script>
+</body>
+</html>
